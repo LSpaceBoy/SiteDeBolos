@@ -1,3 +1,17 @@
+<?php
+session_start();
+// verificar se a variavel não existe, usar o !na frente para identificar que é para fazer o contrario da funcionalidade do isset
+// 
+if (!isset($_SESSION["usuario_id"])) {
+  header("Location: login.php");
+  exit();
+}
+include_once("../db/conexao.php")
+?>
+
+
+
+
 <!doctype html>
 <html lang="en" data-bs-theme="auto">
 

@@ -1,3 +1,42 @@
+<?php
+session_start();
+// incluir a conexao com o banco de dados
+include_once("../db/conexao.php");
+// Verificar se foi feito um submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // guardar o valor de uma input (POST) na variavel e verificar se ela existe 
+    $email = $_POST["email"] ?? "";
+    $senha = $_POST["senha"] ?? "";
+    // verificar se recebi o email e a senha
+    if ($email != "" && $senha != '') {
+        $sql = "SELECT * FROM usuarios WHERE email = ? and senha = MD5(?)";
+        // comando para selecionar os dados de uma tabela
+        // $resultado = $conexao->query($sql);
+        $stmt = $conexao->prepare($sql);
+        $stmt->bind_param("ss", $email, $senha);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+
+        // para ler os dados
+        while ($linha = $resultado->fetch_object()) {
+            $usuario_id = $linha->usuario_id;
+            $usuario_nome = $linha->nome;
+            $_SESSION["usuario_id"] = $usuario_id;
+            $_SESSION["usuario_nome"] = $usuario_nome;
+            header("Location: principal.php");
+            exit();
+        }
+        if ($resultado->num_rows == 0) {
+            $erro = "email / senha não encontrados.";
+        }
+    } else {
+        $erro = "Não foi possível validar o email / senha.";
+    }
+}
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="pt-BR" data-bs-theme="auto">
 
@@ -42,7 +81,7 @@
         </symbol>
     </svg>
 
-    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+    <div class="dropdown position-fixed bottom-0 top-0 end-0 mt-3 me-3 bd-mode-toggle">
         <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button"
             aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)"> <svg
                 class="bi my-1 theme-icon-active" aria-hidden="true">
@@ -55,7 +94,7 @@
                     <svg class="bi me-2 opacity-50" aria-hidden="true">
                         <use href="#sun-fill"></use>
                     </svg>
-                    Light
+                    Claro
                     <svg class="bi ms-auto d-none" aria-hidden="true">
                         <use href="#check2"></use>
                     </svg>
@@ -67,7 +106,7 @@
                     <svg class="bi me-2 opacity-50" aria-hidden="true">
                         <use href="#moon-stars-fill"></use>
                     </svg>
-                    Dark
+                    Escuro
                     <svg class="bi ms-auto d-none" aria-hidden="true">
                         <use href="#check2"></use>
                     </svg>
@@ -79,7 +118,7 @@
                     <svg class="bi me-2 opacity-50" aria-hidden="true">
                         <use href="#circle-half"></use>
                     </svg>
-                    Auto
+                    Automático
                     <svg class="bi ms-auto d-none" aria-hidden="true">
                         <use href="#check2"></use>
                     </svg>
@@ -93,14 +132,22 @@
             <img class="mb-4" src="./img/logotipo.png" alt="" width="64">
             <h1 class="h3 mb-3 fw-normal">Login</h1>
             <div class="form-floating">
-                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
+                <input required type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
                 <label for="email">email</label>
             </div>
             <div class="form-floating">
-                <input type="password" class="form-control" id="senha" name="senha" placeholder="Password">
+                <input required minlength="6" type="password" class="form-control" id="senha" name="senha" placeholder="Password">
                 <label for="senha">Senha</label>
             </div>
             <button class="btn btn-primary w-100 py-2" type="submit">Entrar</button>
+            <?php
+            // comando para verificar se uma variavel existe
+            if (isset($erro) == true) {
+                echo ("<div classe='alert alert-danger mt-2 p-2 small text-center'>");
+                echo ($erro);
+                echo ("</div>");
+            }
+            ?>
         </form>
     </main>
 
