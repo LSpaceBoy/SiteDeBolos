@@ -5,6 +5,8 @@ $titulo = "Novo";
 $nome = $_POST["nome"] ?? "";
 $email = $_POST["email"] ?? "";
 $senha = $_POST["senha"] ?? "";
+$foto = $_FILES["foto"] ?? "";
+
 if (is_numeric($id)) {
   $sql = "SELECT * FROM usuarios WHERE usuario_id = ?";
   $stmt = $conexao->prepare($sql);
@@ -22,8 +24,30 @@ if (is_numeric($id)) {
     $senha = $linha->senha;
     $foto = $linha->foto;
     $titulo = "Alterar";
+    // criar pasta
+    $caminho =  __DIR__ . "/img";
+    $pasta = str_pad($id, 4, "0", STR_PAD_LEFT);
+    if (!is_dir("$caminho/$pasta")) {
+      mkdir("$caminho/$id", 0755);
+    } else {
+      $arquivos = scandir("$caminho/$pasta");
+      foreach ($arquivos as $arq) {
+        if ($arq != "." && $arq != "..") {
+          $imagem = "$pasta/$arq";
+        }
+      }
+    }
   }
 }
+if (is_numeric($id)) {
+  if (isset($_FILES["foto"])) {
+    if($_FILES["foto"]["error"]===0){
+      $arq_temp = $_FILES["foto"]["tmp_name"];
+      $arq_final = "$caminho/$pasta/" . $_FILES["foto"]["name"];
+      move_uploaded_file($arq_temp, $arq_final);
+    }
+  }
+} 
 ?>
 
 <!doctype html>
@@ -59,7 +83,7 @@ if (is_numeric($id)) {
               <a href="./cad_usuario.php" class="btn btn-sm btn-primary">
                 Novo
               </a>
-              <a href="./cad_usuario.php" class="btn btn-sm btn-warning">
+              <a href="./usuario.php" class="btn btn-sm btn-warning">
                 Pesquisa
               </a>
             </div>
@@ -69,7 +93,7 @@ if (is_numeric($id)) {
         <!-- Conteudo principal -->
         <div class="card">
           <div class="card-body">
-            <form method="post">
+            <form method="post" action="" enctype="multipart/form-data">
               <div class="row">
                 <div class="col-md-7">
                   <div class="row">
@@ -94,10 +118,18 @@ if (is_numeric($id)) {
                 <div class="col-md-5">
                   <label class="form-label" for="foto">Foto</label>
                   <input class="form-control" id="foto" name="foto" type="file" accept="image/png, image/jpeg">
+                  <?php 
+                  if(isset($imagem)) {
+                    ?>
+                    <img class="img-fluid" src="./img/<?= $imagem ?>">
+                    <?php
+                  }
+                  ?>
                 </div>
               </div>
               <div class="col-6">
-                <button type="submit" class="btn btn-sucess"></button>
+                <button type="submit" class="btn btn-success">Salvar
+                </button>
               </div>
             </form>
           </div>
